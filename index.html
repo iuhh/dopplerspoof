@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en-GB">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DopplerSpoof · Flyover lab</title>
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #f3f2ec; --surface: #fffefa; --ink: #172724;
+    --muted: #4d6259; --line: #d5ded5; --accent: #11624d; --signal: #a8ebac;
+    font: 16px/1.55 system-ui, sans-serif;
+    background: var(--paper); color: var(--ink);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; }
+  a { color: var(--accent); text-underline-offset: .22em; }
+  p { margin: .55rem 0 1rem; color: var(--muted); }
+  .shell { width: min(72rem, calc(100% - 3rem)); margin-inline: auto; }
+  .masthead { border-bottom: 1px solid var(--line); }
+  .masthead .shell, footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .masthead .shell { padding-block: .95rem; }
+  .wordmark { color: var(--ink); font-weight: 750; letter-spacing: -.035em; text-decoration: none; }
+  nav { display: flex; gap: clamp(.75rem, 3vw, 1.6rem); flex-wrap: wrap; }
+  nav a { font-size: .875rem; font-weight: 600; }
+  .hero { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: clamp(1.4rem, 5vw, 4rem); padding-block: clamp(2rem, 5vw, 4rem); }
+  .eyebrow { color: var(--accent); font: 650 .73rem/1.4 ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; }
+  h1, h2 { letter-spacing: -.045em; line-height: 1.06; margin: .3rem 0 .7rem; }
+  h1 { font-size: clamp(2.8rem, 6vw, 5.25rem); max-width: 10ch; }
+  h2 { font-size: clamp(1.65rem, 3vw, 2.2rem); }
+  h3 { margin: 0; font-size: 1rem; }
+  .hero p:last-child { margin-bottom: 0; max-width: 42ch; }
+  .signature { margin: 0; background: #132823; color: var(--signal); border: 1px solid #2d4940; border-radius: 1rem; overflow: hidden; }
+  .signature svg { display: block; width: 100%; height: auto; }
+  .signature figcaption { padding: .65rem 1rem; border-top: 1px solid #36554b; color: #c1d8cd; font: .72rem/1.4 ui-monospace, monospace; }
+  .workspace { display: grid; gap: 1.15rem; }
+  form, .traffic { background: var(--surface); padding: clamp(1rem, 3vw, 2rem); border: 1px solid var(--line); border-radius: 1rem; min-width: 0; }
+  .controls { display: grid; gap: .8rem 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+  label { display: grid; gap: .35rem; align-content: start; min-width: 0; font-size: .875rem; font-weight: 600; }
+  input, select, button { font: inherit; min-height: 2.65rem; border: 1px solid #bdccc2; border-radius: .5rem; padding: .45rem .75rem; }
+  input, select { width: 100%; min-width: 0; background: #fffefa; color: var(--ink); }
+  input[type=file] { margin-bottom: 1rem; }
+  input[type=range] { accent-color: var(--accent); padding: 0; min-height: 2rem; }
+  button { background: #edf3ed; color: var(--ink); cursor: pointer; font-size: .875rem; font-weight: 650; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button[type=submit], button[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: white; }
+  button:disabled { opacity: .55; cursor: default; }
+  fieldset { margin: .9rem 0; padding: .85rem 1rem 1rem; min-inline-size: 0; background: #f4f7f2; border: 1px solid var(--line); border-radius: .65rem; }
+  legend { padding-inline: .4rem; font-weight: 700; }
+  .actions { display: flex; gap: .55rem; flex-wrap: wrap; margin-top: .8rem; }
+  fieldset .actions button { min-height: 2.25rem; background: transparent; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .playback { margin-top: 1.3rem; padding-top: 1.1rem; border-top: 1px solid var(--line); }
+  #traffic-view { aspect-ratio: 16 / 9; }
+  #traffic-start { background: var(--accent); color: white; }
+  .level-label { display: flex; justify-content: space-between; margin-top: .65rem; }
+  output { font-family: ui-monospace, monospace; }
+  audio, canvas { display: block; width: 100%; margin-top: .8rem; }
+  canvas { background: #101c22; border-radius: .6rem; }
+  [role=status] { margin: .75rem 0 0; font-size: .85rem; }
+  [role=status]:empty { display: none; }
+  footer { margin-block: 1.25rem 2rem; font-size: .8rem; color: var(--muted); }
+  @media (max-width: 43rem) {
+    .shell { width: calc(100% - 1.5rem); }
+    .hero { grid-template-columns: 1fr; }
+    h1 { max-width: 13ch; }
+  }
+</style>
+<header class="masthead"><div class="shell">
+  <a class="wordmark" href="#top">DopplerSpoof</a>
+  <nav aria-label="Lab sections"><a href="#traffic">Air traffic</a><a href="#flyover">Scene builder</a><a href="#analysis">Curve inspector</a></nav>
+</div></header>
+<main class="shell" id="top">
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Aircraft acoustics lab</p>
+      <h1>Flyover studio</h1>
+      <p>Build an aircraft pass, listen from a ground microphone, and compare its Doppler curve with a recording.</p>
+    </div>
+    <figure class="signature">
+      <svg viewBox="0 0 520 204" aria-hidden="true">
+        <defs><pattern id="grid" width="40" height="28" patternUnits="userSpaceOnUse"><path d="M40 0H0V28" fill="none" stroke="#35564b" stroke-width="1"/></pattern></defs>
+        <path d="M0 0H520V204H0Z" fill="url(#grid)"/>
+        <path d="M260 0V204" stroke="#709788" stroke-dasharray="3 6" opacity=".75"/>
+        <g fill="none" stroke="currentColor" stroke-linecap="round">
+          <path d="M0 30C152 31 203 35 243 60S289 90 329 97 430 105 520 107" stroke-width="1.5" opacity=".35"/>
+          <path d="M0 72C148 72 204 75 243 94S291 119 329 125 430 131 520 133" stroke-width="2.5"/>
+          <path d="M0 118C148 118 204 121 243 135S291 155 329 160 430 165 520 166" stroke-width="1.5" opacity=".5"/>
+        </g>
+        <circle cx="260" cy="102" r="4" fill="currentColor"/>
+        <g fill="#c1d8cd" font-size="11" font-family="monospace"><text x="18" y="189">APPROACH</text><text x="502" y="189" text-anchor="end">RECEDE</text></g>
+      </svg>
+      <figcaption>Illustrative flyover signature · frequency over time</figcaption>
+    </figure>
+  </header>
+  <div class="workspace">
+  <section id="traffic" class="traffic" aria-labelledby="traffic-title">
+  <h2 id="traffic-title">Air traffic simulator</h2>
+  <p>Listen from a fixed seat as aircraft cross the sky on different headings. Flights can overlap and are generated as you listen.</p>
+  <div class="controls">
+    <label>Traffic density<select id="traffic-density"><option value="quiet">Quiet</option><option value="steady" selected>Steady</option><option value="busy">Busy</option></select></label>
+    <label>View<select id="traffic-camera"><option value="overview">3D airspace</option><option value="room">Seated view</option></select></label>
+    <label id="room-direction" hidden>Look direction (°)<input id="room-heading" type="range" min="0" max="359" value="0" aria-valuetext="0 degrees"></label>
+  </div>
+  <canvas id="traffic-view" width="960" height="540" role="img" aria-label="3D view of aircraft around a fixed listener"></canvas>
+  <label class="level-label" for="level">Playback level <output id="level-value" for="level">−24 dB</output></label>
+  <input id="level" type="range" min="-48" max="0" value="-24" aria-describedby="level-help">
+  <p id="level-help"><small>The level applies to both players. WAV export uses the scene mix level.</small></p>
+  <div class="actions">
+    <button type="button" id="traffic-start" aria-pressed="false">Start traffic</button>
+  </div>
+  <p id="traffic-status" role="status">Traffic stopped.</p>
+  <p id="traffic-flights" hidden></p>
+</section>
+<form id="flyover">
+    <p class="eyebrow">01 / Synthesis</p>
+    <h2>Scene builder</h2>
+    <p>Choose aircraft and set their paths. Preset timbre is procedural and still needs comparison with field recordings.</p>
+    <div class="controls">
+      <label>Country preset<select name="country"><option value="uk">United Kingdom</option><option value="us">United States</option><option value="fr">France</option></select></label>
+      <label>Microphone facing (°)<input name="facing" type="number" min="0" max="359" value="0" required></label>
+      <label>Output<select name="channels"><option value="2">Stereo</option><option value="1">Mono</option></select></label>
+    </div>
+    <p><small>Country selects the first aircraft and the default for new aircraft. Set equal closest-approach offsets for simultaneous passes. The mix starts before the first pass so you can hear the approach.</small></p>
+    <div id="aircraft"></div>
+    <button type="button" id="add-aircraft">Add aircraft</button>
+    <p><small>Left and right offset are relative to the direction of travel. The stereo image is relative to where the microphone faces. A 90° track with the mic facing north travels left to right.</small></p>
+    <div class="playback">
+    <h3>Playback &amp; export</h3>
+    <div class="actions">
+      <button type="submit">Play flyover</button>
+      <button type="button" id="stop" disabled>Stop</button>
+      <button type="button" id="download">Download WAV</button>
+      <button type="button" id="plot-generated" aria-describedby="generated-plot-help">Plot simulated flyover</button>
+    </div>
+    <audio id="preview" controls hidden></audio>
+    <p id="status" role="status">Ready to render.</p>
+    <p id="generated-plot-help"><small>The simulated plot uses the <a href="#plot-settings">time and frequency settings</a> in the Curve Inspector.</small></p>
+    <p id="generated-analysis-status" role="status"></p>
+    <canvas id="generated-spectrum" width="800" height="340" role="img" aria-label="Simulated flyover plot" hidden></canvas>
+    </div>
+  </form>
+  <form id="analysis">
+  <p class="eyebrow">02 / Analysis</p>
+  <h2>Inspect a Doppler curve</h2>
+  <p>Plot a recording you choose, or plot the simulated flyover you set up in the Scene Builder.</p>
+    <label>Reference recording<input id="reference" type="file" accept="audio/*,video/*,.wav,.mp4,.mov,.webm,.m4a"></label>
+    <div class="controls" id="plot-settings">
+      <label>Start (seconds)<input name="start" type="number" min="0" step="0.1" value="0" required></label>
+      <label>Window (seconds)<input name="seconds" type="number" min="2" max="60" value="30" required></label>
+      <label>Lower frequency (Hz)<input name="lowFrequency" type="number" min="0" max="1990" value="0" required></label>
+      <label>Upper frequency (Hz)<input name="frequency" type="number" min="10" max="2000" value="700" required></label>
+      <label>Plot view<select name="view"><option value="spectrogram">Spectrogram</option><option value="ridge">Measured ridge</option></select></label>
+    </div>
+    <p><small>To trace one harmonic, narrow the time window and frequency band around its bend, then choose Measured ridge.</small></p>
+    <div class="actions"><button type="submit">Plot selected recording</button></div>
+    <p id="analysis-status" role="status"></p>
+    <canvas id="spectrum" width="800" height="340" role="img" aria-label="Reference low-frequency spectrogram" hidden></canvas>
+  </form>
+  </div>
+  <footer><span>Recordings stay on this device.</span><nav aria-label="Research references"><a href="https://www.redhillaviation.co.uk/our-fleet/">UK flight-school fleet</a><a href="https://cessna.txtav.com/en/piston/cessna-skyhawk">Skyhawk reference</a><a href="https://www.robin-aircraft.com/en/maintenance-centers/">Robin flying-club reference</a><a href="docs/research/aircraft-flyover-auralization.md">Synthesis research</a></nav></footer>
+</main>
+<script src="flyover.js"></script>
+<script src="traffic-view.js"></script>
+<script src="traffic.js"></script>
+<script src="spectrogram.js"></script>
+</html>
